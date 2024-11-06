@@ -2,12 +2,13 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\Auth\RegisterController;
 
 // Landing page
 Route::get('/', function () {
@@ -38,5 +39,14 @@ Route::get('/privacy-policy', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware('auth');
+
+// routes/web.php
+Route::middleware(['auth'])->group(function () {
+    Route::post('/profile/update', [ProfileController::class, 'updateProfile']);
+    Route::post('/profile/address', [ProfileController::class, 'addAddress']);
+    Route::delete('/profile/address/{id}', [ProfileController::class, 'deleteAddress']);
+    Route::post('/profile/phone', [ProfileController::class, 'addPhone']);
+    Route::delete('/profile/phone/{id}', [ProfileController::class, 'deletePhone']);
+});
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

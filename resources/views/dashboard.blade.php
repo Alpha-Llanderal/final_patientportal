@@ -35,26 +35,21 @@
                         </div>
                         <div class="col-md-9">
                             <div class="row">
-                                <!-- Form Fields -->
                                 <div class="col-sm-6 mb-3">
                                     <label for="firstName" class="form-label">First Name *</label>
-                                    <input type="text" class="form-control" id="firstName" placeholder="First Name">
+                                    <input type="text" class="form-control" id="firstName" value="{{ auth()->user()->firstName }}" placeholder="First Name">
                                 </div>
                                 <div class="col-sm-6 mb-3">
                                     <label for="lastName" class="form-label">Last Name *</label>
-                                    <input type="text" class="form-control" id="lastName" placeholder="Last Name">
+                                    <input type="text" class="form-control" id="lastName" value="{{ auth()->user()->lastName }}" placeholder="Last Name">
                                 </div>
                                 <div class="col-sm-6 mb-3">
                                     <label for="birthDate" class="form-label">Date of Birth *</label>
-                                    <input type="date" class="form-control" id="birthDate" placeholder="DD-MM-YYYY">
+                                    <input type="date" class="form-control" id="birthDate" value="{{ auth()->user()->birthDate?->format('Y-m-d') }}" placeholder="DD-MM-YYYY">
                                 </div>
                                 <div class="col-sm-6 mb-3">
                                     <label for="email" class="form-label">Email *</label>
-                                    <input type="email" class="form-control" id="email" placeholder="Email Address">
-                                </div>
-                                <div class="col-sm-6 mb-3">
-                                    <label for="password" class="form-label">Password *</label>
-                                    <input type="password" class="form-control" id="password" placeholder="Password">
+                                    <input type="email" class="form-control" id="email" value="{{ auth()->user()->email }}" placeholder="Email Address">
                                 </div>
                             </div>
                         </div>
@@ -91,10 +86,26 @@
                                     <thead>
                                         <tr>
                                             <th>Address</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Rows will be added here -->
+                                        @if(auth()->user()->addresses)
+                                            @foreach(auth()->user()->addresses as $address)
+                                            <tr>
+                                                <td>{{ $address->address }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger delete-address" data-id="{{ $address->id }}">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="2" class="text-center">No addresses found.</td>
+                                            </tr>
+                                        @endif
                                     </tbody>
                                 </table>
                             </div>
@@ -128,10 +139,26 @@
                                     <thead>
                                         <tr>
                                             <th>Phone Number</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Rows will be added here -->
+                                        @if(auth()->user()->phone_numbers)
+                                            @foreach(auth()->user()->phone_numbers as $phone)
+                                            <tr>
+                                                <td>{{ $phone->phone_number }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger delete-phone" data-id="{{ $phone->id }}">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td colspan="2" class="text-center">No phone numbers found.</td>
+                                            </tr>
+                                        @endif
                                     </tbody>
                                 </table>
                             </div>
