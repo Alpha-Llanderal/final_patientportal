@@ -40,6 +40,12 @@ class UserController extends Controller
 
         return response()->json($user, 200);
     }
+
+    public function showLoginForm()
+    {
+        $user = null; // or fetch user data if needed
+        return view('login', compact('user'));
+    }
 }
 
 
