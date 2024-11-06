@@ -4,25 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreatePhonesTable extends Migration
 {
     public function up()
     {
-        Schema::create('phone_numbers', function (Blueprint $table) {
-            $table->increments('id');
-            $table->unsignedInteger('user_id');
-            $table->string('phoneNumber');
-            $table->timestamps();
-            
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
+        Schema::create('phones', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')
+                  ->constrained()
                   ->onDelete('cascade');
+            $table->string('phone_number');
+            $table->timestamps();
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('phone_numbers');
+        Schema::dropIfExists('phones');
     }
-};
+}

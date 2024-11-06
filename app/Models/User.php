@@ -30,4 +30,14 @@ class User extends Authenticatable
         'isSelfPay' => 'boolean',
         'email_verified_at' => 'datetime',
     ];
+
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
+    public function phones()
+    {
+        return $this->hasMany(Phone::class);
+    }
 }
