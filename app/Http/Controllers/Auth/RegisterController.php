@@ -10,6 +10,12 @@ use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
+    // Show the registration form
+    public function showRegistrationForm()
+    {
+        return view('auth.register'); // Adjust the path to your registration view file
+    }
+
     protected function validator(array $data)
     {
         return Validator::make($data, [
@@ -36,9 +42,7 @@ class RegisterController extends Controller
 
         $user = $this->create($request->all());
 
-        // Optionally, you can log the user in after registration
-        // Auth::login($user);
-
-        return redirect()->route('home')->with('success', 'Registration successful!');
+        // Redirect to the login page after successful registration
+        return redirect()->route('login')->with('success', 'Registration successful! You can now log in.');
     }
 }
