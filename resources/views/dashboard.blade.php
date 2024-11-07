@@ -88,6 +88,7 @@
 
                             <!-- Address Table -->
                             <div class="table-responsive mt-3">
+                                <div id="addressList" class="mt-3">
                                 <table id="addressesTable" class="table">
                                     <thead>
                                         <tr>
@@ -114,6 +115,7 @@
                                         @endif
                                     </tbody>
                                 </table>
+                                </div>
                             </div>
                         </div>
                         <!-- Phone Section -->

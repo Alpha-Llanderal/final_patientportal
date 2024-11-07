@@ -3,27 +3,47 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Address extends Model
 {
-    protected $fillable = ['address', 'user_id'];
+    use HasFactory;
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-}
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<string>
+     */
+    protected $fillable = [
+        'address',
+        'user_id'
+    ];
 
-// app/Models/Phone.php
-namespace App\Models;
+    /**
+     * The attributes that should be guarded.
+     *
+     * @var array<string>
+     */
+    protected $guarded = ['id'];
 
-use Illuminate\Database\Eloquent\Model;
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'address' => 'string',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
 
-class Phone extends Model
-{
-    protected $fillable = ['phone_number', 'user_id'];
-
-    public function user()
+    /**
+     * Get the user that owns the address.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

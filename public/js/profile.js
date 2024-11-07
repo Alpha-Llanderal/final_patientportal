@@ -129,4 +129,116 @@ $(document).ready(function() {
             $('.alert').alert('close');
         }, 5000);
     }
+
+    $(document).ready(function() {
+        // Load existing addresses when page loads
+        loadAddresses();
+    
+        // Save Address
+        $('#saveAddressButton').click(function() {
+            const addressInput = $('#addressInput').val().trim();
+            
+            if (!addressInput) {
+                showAddressAlert('Please enter an address');
+                return;
+            }
+    
+            // Show loading state
+            $('#saveAddressButton').prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Saving...');
+    
+            $.ajax({
+                url: '/profile/address',
+                method: 'POST',
+                data: {
+                    address: addressInput,
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    // Clear input and close modal
+                    $('#addressInput').val('');
+                    $('#addressModal').modal('hide');
+                    
+                    // Reload addresses
+                    loadAddresses();
+                    
+                    // Show success message
+                    showAlert('success', 'Address added successfully');
+                },
+                error: function(xhr) {
+                    showAddressAlert('Error adding address: ' + (xhr.responseJSON?.message || 'Unknown error'));
+                },
+                complete: function() {
+                    // Reset button state
+                    $('#saveAddressButton').prop('disabled', false).html('Save Address');
+                }
+            });
+        });
+    
+        // Delete Address
+        $(document).on('click', '.delete-address', function() {
+            const addressId = $(this).data('id');
+            
+            if (confirm('Are you sure you want to delete this address?')) {
+                $.ajax({
+                    url: `/profile/address/${addressId}`,
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        loadAddresses();
+                        showAlert('success', 'Address deleted successfully');
+                    },
+                    error: function(xhr) {
+                        showAlert('danger', 'Error deleting address: ' + (xhr.responseJSON?.message || 'Unknown error'));
+                    }
+                });
+            }
+        });
+    
+        // Function to load addresses
+        function loadAddresses() {
+            $.ajax({
+                url: '/profile/addresses',
+                method: 'GET',
+                success: function(addresses) {
+                    const addressList = $('#addressList');
+                    addressList.empty();
+    
+                    if (addresses.length === 0) {
+                        addressList.append(`
+                            <div class="text-muted text-center py-3">
+                                No addresses added yet
+                            </div>
+                        `);
+                    } else {
+                        addresses.forEach(function(address) {
+                            addressList.append(`
+                                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                    <span>${address.address}</span>
+                                    <button class="btn btn-sm btn-danger delete-address" data-id="${address.id}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            `);
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    showAlert('danger', 'Error loading addresses: ' + (xhr.responseJSON?.message || 'Unknown error'));
+                }
+            });
+        }
+    
+        // Function to show alert in address modal
+        function showAddressAlert(message) {
+            const alertDiv = $('#addressAlert');
+            alertDiv.removeClass('d-none').text(message);
+            
+            // Hide alert after 5 seconds
+            setTimeout(() => {
+                alertDiv.addClass('d-none');
+            }, 5000);
+        }
+    });
 });

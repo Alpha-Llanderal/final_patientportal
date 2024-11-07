@@ -7,61 +7,68 @@ use App\Models\User;
 use App\Models\Address;
 use App\Models\Phone;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class ProfileController extends Controller
 {
+    protected $user;
+
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            $this->user = auth()->user();
+            return $next($request);
+        });
+    }
+
     public function updateProfile(Request $request)
     {
-        $user = auth()->user();
-        
-        $validated = $request->validate([
-            'firstName' => 'required|string|max:255',
-            'lastName' => 'required|string|max:255',
-            'birthDate' => 'required|date',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'profilePicture' => 'nullable|image|max:2048',
-        ]);
+        try {
+            $validated = $request->validate([
+                'firstName' => 'required|string|max:255',
+                'lastName' => 'required|string|max:255',
+                'birthDate' => 'required|date',
+                'email' => 'required|email|unique:users,email,' . $this->user->id,
+                'profilePicture' => 'nullable|image|max:2048',
+            ]);
 
-        if ($request->hasFile('profilePicture')) {
-            if ($user->profile_picture) {
-                Storage::disk('public')->delete($user->profile_picture);
-            }
-            $path = $request->file('profilePicture')->store('profile-pictures', 'public');
-            $user->profile_picture = $path;
+            DB::transaction(function () use ($validated, $request) {
+                if ($request->hasFile('profilePicture')) {
+                    $this->updateProfilePicture($request->file('profilePicture'));
+                }
+                $this->user->update($validated);
+            });
+
+            return response()->json(['message' => 'Profile updated successfully']);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return $this->handleException($e);
         }
-
-        $user->update($validated);
-
-        return response()->json(['message' => 'Profile updated successfully']);
     }
 
     public function uploadProfilePicture(Request $request)
     {
-        $request->validate([
-            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-
         try {
-            if ($request->hasFile('profile_picture')) {
-                $path = $this->updateProfilePicture($request->file('profile_picture'));
+            $request->validate(['profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048']);
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Profile picture uploaded successfully',
-                    'path' => Storage::url($path)
-                ]);
+            if (!$request->hasFile('profile_picture')) {
+                return response()->json(['success' => false, 'message' => 'No image file provided'], 400);
             }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'No image file provided'
-            ], 400);
+            $path = $this->updateProfilePicture($request->file('profile_picture'));
 
-        } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
-                'message' => 'Error uploading profile picture: ' . $e->getMessage()
-            ], 500);
+                'success' => true,
+                'message' => 'Profile picture uploaded successfully',
+                'path' => Storage::url($path)
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return $this->handleException($e);
         }
     }
 
@@ -77,41 +84,83 @@ class ProfileController extends Controller
         return $path;
     }
 
+    public function getAddresses()
+    {
+        $addresses = $this->user->addresses()->orderBy('created_at', 'desc')->get();
+        return response()->json($addresses);
+    }
+
     public function addAddress(Request $request)
     {
-        $validated = $request->validate([
-            'address' => 'required|string|max:255'
-        ]);
-
-        $address = auth()->user()->addresses()->create($validated);
-
-        return response()->json($address);
+        try {
+            $validated = $request->validate(['address' => 'required|string|max:255']);
+            $address = $this->user->addresses()->create($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Address added successfully',
+                'address' => $address
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return $this->handleException($e);
+        }
     }
 
     public function deleteAddress($id)
     {
-        $address = Address::findOrFail($id);
-        $address->delete();
+        try {
+            $address = Address::findOrFail($id);
+            
+            if ($address->user_id !== $this->user->id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
 
-        return response()->json(['message' => 'Address deleted successfully']);
+            $address->delete();
+            return response()->json(['success' => true, 'message' => 'Address deleted successfully']);
+        } catch (\Exception $e) {
+            return $this->handleException($e);
+        }
     }
 
     public function addPhone(Request $request)
     {
-        $validated = $request->validate([
-            'phone_number' => 'required|string|max:20'
-        ]);
-
-        $phone = auth()->user()->phones()->create($validated);
-
-        return response()->json($phone);
+        try {
+            $validated = $request->validate(['phone_number' => 'required|string|max:20']);
+            $phone = $this->user->phones()->create($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Phone number added successfully',
+                'phone' => $phone
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return $this->handleException($e);
+        }
     }
 
     public function deletePhone($id)
     {
-        $phone = Phone::findOrFail($id);
-        $phone->delete();
+        try {
+            $phone = Phone::findOrFail($id);
+            
+            if ($phone->user_id !== $this->user->id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
 
-        return response()->json(['message' => 'Phone deleted successfully']);
+            $phone->delete();
+            return response()->json(['success' => true, 'message' => 'Phone number deleted successfully']);
+        } catch (\Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+    protected function handleException(\Exception $e)
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'An error occurred: ' . $e->getMessage()
+        ], 500);
     }
 }

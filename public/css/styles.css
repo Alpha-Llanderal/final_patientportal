@@ -197,3 +197,21 @@ main {
 .accordion-body {
     padding: 1.25rem;
 }
+
+/* login.blade.php */
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+.form-floating > label {
+    z-index: 3;
+}
+
+.btn-success {
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
