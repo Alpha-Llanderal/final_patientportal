@@ -43,18 +43,7 @@ class ProfileController extends Controller
 
         try {
             if ($request->hasFile('profile_picture')) {
-                // Delete old profile picture if exists
-                if (auth()->user()->profile_picture) {
-                    Storage::disk('public')->delete(auth()->user()->profile_picture);
-                }
-
-                // Store the new image
-                $path = $request->file('profile_picture')->store('profile-pictures', 'public');
-
-                // Update user's profile_picture in database
-                auth()->user()->update([
-                    'profile_picture' => $path
-                ]);
+                $path = $this->updateProfilePicture($request->file('profile_picture'));
 
                 return response()->json([
                     'success' => true,
@@ -71,9 +60,21 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error uploading profile picture'
+                'message' => 'Error uploading profile picture: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    protected function updateProfilePicture($file)
+    {
+        if ($this->user->profile_picture) {
+            Storage::disk('public')->delete($this->user->profile_picture);
+        }
+
+        $path = $file->store('profile-pictures', 'public');
+        $this->user->update(['profile_picture' => $path]);
+
+        return $path;
     }
 
     public function addAddress(Request $request)
