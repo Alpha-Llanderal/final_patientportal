@@ -49,4 +49,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/profile/phone/{id}', [ProfileController::class, 'deletePhone']);
 });
 
+// Profile Picture 
+Route::post('/profile/upload', [ProfileController::class, 'uploadProfilePicture'])->name('profile.upload');
+
+
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

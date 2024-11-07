@@ -19,20 +19,61 @@ class ProfileController extends Controller
             'lastName' => 'required|string|max:255',
             'birthDate' => 'required|date',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'profilePicture' => 'nullable|image|max:1024',
+            'profilePicture' => 'nullable|image|max:2048',
         ]);
 
         if ($request->hasFile('profilePicture')) {
-            if ($user->profilePicture) {
-                Storage::delete($user->profilePicture);
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
             }
-            $path = $request->file('profilePicture')->store('profile-pictures');
-            $user->profilePicture = $path;
+            $path = $request->file('profilePicture')->store('profile-pictures', 'public');
+            $user->profile_picture = $path;
         }
 
         $user->update($validated);
 
         return response()->json(['message' => 'Profile updated successfully']);
+    }
+
+    public function uploadProfilePicture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        try {
+            if ($request->hasFile('profile_picture')) {
+                // Delete old profile picture if exists
+                if (auth()->user()->profile_picture) {
+                    Storage::disk('public')->delete(auth()->user()->profile_picture);
+                }
+
+                // Store the new image
+                $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+
+                // Update user's profile_picture in database
+                auth()->user()->update([
+                    'profile_picture' => $path
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Profile picture uploaded successfully',
+                    'path' => Storage::url($path)
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No image file provided'
+            ], 400);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error uploading profile picture'
+            ], 500);
+        }
     }
 
     public function addAddress(Request $request)

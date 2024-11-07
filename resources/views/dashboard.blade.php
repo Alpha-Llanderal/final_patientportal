@@ -27,11 +27,17 @@
                     <div class="row">
                         <div class="col-md-3 text-center">
                             <!-- Profile Picture Upload -->
-                            <img id="profilePicture" src="https://via.placeholder.com/150" class="rounded-circle img-fluid mb-3 mb-md-0" alt="Profile Picture">
-                            <div class="mt-2">
-                                <input type="file" id="profilePictureInput" accept="image/*" style="display: none;">
-                                <button class="btn btn-outline-secondary" id="uploadButton"><i class="bi bi-upload me-1"></i>Upload Photo</button>
-                            </div>
+                            <form action="{{ route('profile.upload') }}" method="POST" enctype="multipart/form-data" id="profilePictureForm">
+                                @csrf
+                                <img id="profilePicture" src="{{ auth()->user()->profile_picture ?? 'https://via.placeholder.com/150' }}" 
+                                     class="rounded-circle img-fluid mb-3 mb-md-0" alt="Profile Picture">
+                                <div class="mt-2">
+                                    <input type="file" name="profile_picture" id="profilePictureInput" accept="image/*" style="display: none;">
+                                    <button type="button" class="btn btn-outline-secondary" id="uploadButton">
+                                        <i class="bi bi-upload me-1"></i>Upload Photo
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                         <div class="col-md-9">
                             <div class="row">

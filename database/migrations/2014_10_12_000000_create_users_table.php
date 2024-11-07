@@ -34,3 +34,20 @@ return new class extends Migration
         Schema::dropIfExists('users');
     }
 };
+
+    class AddProfilePictureToUsersTable extends Migration
+    {
+        public function up()
+        {
+            Schema::table('users', function (Blueprint $table) {
+                $table->string('profilePicture')->nullable();
+            });
+        }
+
+        public function down()
+        {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropColumn('profilePicture');
+            });
+        }
+    }
